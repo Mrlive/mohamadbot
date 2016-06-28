@@ -1,31 +1,89 @@
-do   
+-- Checks if bot was disabled on specific chat
+local function is_channel_disabled( receiver )
+	if not _config.disabled_channels then
+		return false
+	end
 
-local fwd_to = 147147004
+	if _config.disabled_channels[receiver] == nil then
+		return false
+	end
 
-local function callback_message(extra,success,result)
-local receiver = result.to.id
-local msg = extra
-  if result.fwd_from and msg.text then
-  fwd_msg(result.fwd_from.id, msg.id, ok_cb,false)
-  else
-    return nil
-      end
+  return _config.disabled_channels[receiver]
+end
+
+local function enable_channel(receiver)
+	if not _config.disabled_channels then
+		_config.disabled_channels = {}
+	end
+
+	if _config.disabled_channels[receiver] == nil then
+		return "ðŸš¨Ø±Ø¨Ø§Øª Ø®Ø§Ù…ÙˆØ´ Ù†ÛŒØ³ØªðŸš¨"
+	end
+	
+	_config.disabled_channels[receiver] = false
+
+	save_config()
+	return "âš¡Ø±Ø¨Ø§Øª Ø±ÙˆØ´Ù† Ø´Ø¯"
+end
+
+local function disable_channel( receiver )
+	if not _config.disabled_channels then
+		_config.disabled_channels = {}
+	end
+	
+	_config.disabled_channels[receiver] = true
+
+	save_config()
+	return "ðŸŒ€Ø®Ø§Ù…ÙˆØ´ Ø´Ø¯"
+end
+
+local function pre_process(msg)
+	local receiver = get_receiver(msg)
+	
+	-- If sender is moderator then re-enable the channel
+	--if is_sudo(msg) then
+	if is_owner(msg) then
+	  if msg.text == "/bot on" or msg.text == "/Bot on" or msg.text == "!bot on" or msg.text == "!Bot on" then
+	  
+	    enable_channel(receiver)
+	  end
+	end
+
+  if is_channel_disabled(receiver) then
+  	msg.text = ""
   end
-function run(msg, matches) 
-  if msg.to.type == "user" and msg.text then
-fwd_msg("user#id"..tonumber(fwd_to), msg.id,ok_cb,false)
-  return 'پیام شما برای ادمین ارسال شد'
-elseif msg.text and msg.reply_id and tonumber(msg.to.id) == fwd_to then
-    if not msg.text then
-    return "You can only send Text message" 
-      end
-    get_message(msg.reply_id, callback_message, msg)
-    end
+
+	return msg
 end
-return {               
-patterns = {
-"^(.*)$",
- }, 
-run = run,
+
+local function run(msg, matches)
+	local receiver = get_receiver(msg)
+	-- Enable a channel
+	
+	local hash = 'usecommands:'..msg.from.id..':'..msg.to.id
+    redis:incr(hash)
+	if not is_owner(msg) then
+	return 'ðŸš«Ø´Ù…Ø§ Ø¯Ø³ØªØ±Ø³ÛŒ Ù†Ø¯Ø§Ø±ÛŒØ¯ðŸš«'
+	end
+	if matches[1] == 'on' then
+		return enable_channel(receiver)
+	end
+	-- Disable a channel
+	if matches[1] == 'off' then
+		return disable_channel(receiver)
+	end
+end
+
+return {
+	description = "Plugin to manage channels. Enable or disable channel.", 
+	usage = {
+		"/channel enable: enable current channel",
+		"/channel disable: disable current channel" },
+	patterns = {
+		"^[!/][Bb]ot (on)",
+		"^[!/][Bb]ot (off)" }, 
+	run = run,
+	--privileged = true,
+	moderated = true,
+	pre_process = pre_process
 }
-end
