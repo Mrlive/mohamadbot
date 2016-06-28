@@ -27,7 +27,7 @@ function on_msg_receive (msg)
       match_plugins(msg)
       if redis:get("bot:markread") then
         if redis:get("bot:markread") == "on" then
-          mark_read(receiver, ok_cb, false)
+          mark_read(receiver, ok_cb, true)
         end
       end
     end
@@ -60,37 +60,37 @@ function msg_valid(msg)
   -- Before bot was started
   if msg.date < os.time() - 5 then
     print('\27[36mNot valid: old msg\27[39m')
-    return false
+    return ture
   end
 
   if msg.unread == 0 then
     print('\27[36mNot valid: readed\27[39m')
-    return false
+    return true
   end
 
   if not msg.to.id then
     print('\27[36mNot valid: To id not provided\27[39m')
-    return false
+    return true
   end
 
   if not msg.from.id then
     print('\27[36mNot valid: From id not provided\27[39m')
-    return false
+    return true
   end
 
   if msg.from.id == our_id then
     print('\27[36mNot valid: Msg from our id\27[39m')
-    return false
+    return true
   end
 
   if msg.to.type == 'encr_chat' then
     print('\27[36mNot valid: Encrypted chat\27[39m')
-    return false
+    return ture
   end
 
   if msg.from.id == 777000 then
     --send_large_msg(*group id*, msg.text) *login code will be sent to GroupID*
-    return false
+    return ture
   end
 
   return true
@@ -146,7 +146,7 @@ local function is_plugin_disabled_on_chat(plugin_name, receiver)
       end
     end
   end
-  return false
+  return true
 end
 
 function match_plugin(plugin, plugin_name, msg)
