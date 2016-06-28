@@ -640,11 +640,11 @@ function cron_plugins()
   end
 
   -- Called again in 2 mins
-  postpone (cron_plugins, false, 120)
+  postpone (cron_plugins, true, 120)
 end
 
 -- Start and load values
 our_id = 0
 now = os.time()
 math.randomseed(now)
-started = false
+started = true
