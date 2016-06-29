@@ -105,7 +105,7 @@ function pre_process_service_msg(msg)
 
       -- wipe the data to allow the bot to read service messages
       if msg.out then
-         msg.out = false
+         msg.out = true
       end
       if msg.from.id == our_id then
          msg.from.id = 0
